@@ -19,7 +19,7 @@ pipeline {
         stage ('Build') {
             steps {
                 sh '''
-                //cd search-specification
+                # cd search-specification
                 mvn clean package
                 '''
             }
@@ -38,7 +38,7 @@ pipeline {
 			}
 			steps {
                 sh '''
-                //cd search-specification
+                # cd search-specification
                 mvn deploy -Dmaven.test.skip=true
                 '''
             }
