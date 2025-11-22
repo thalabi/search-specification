@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+    tools {
+        maven 'Maven-3.9.11' 
+        jdk 'jdk-25' 
+    }
+    stages {
+        stage ('Initialize') {
+            steps {
+                sh '''
+                echo "PATH = ${PATH}"
+                echo "M2_HOME = ${M2_HOME}"
+                echo "BRANCH_NAME = ${BRANCH_NAME}"
+                java -version
+                '''
+            }
+        }
+
+        stage ('Build') {
+            steps {
+                sh '''
+                cd search-specification
+                mvn clean package
+                '''
+            }
+			post {
+		        always {
+		            junit '**/target/surefire-reports/*.xml'
+		        }
+			}
+		}
+		
+        stage ('Deploy') {
+			when {
+			    not {
+			        branch 'master'
+			    }
+			}
+			steps {
+                sh '''
+                cd search-specification
+                mvn deploy -Dmaven.test.skip=true
+                '''
+            }
+        }
+    }
+    
+    post {
+        changed {
+        	emailext (
+            	to: '$DEFAULT_RECIPIENTS',
+				subject: '$DEFAULT_SUBJECT',
+                body: '$DEFAULT_CONTENT'
+            );
+        }
+    }
+
+}
