@@ -1,0 +1,5 @@
+com\kerneldc\searchspecification\EntitySpecification$Filter.class
+com\kerneldc\searchspecification\EntitySpecification.class
+com\kerneldc\searchspecification\JpaEntity.class
+com\kerneldc\searchspecification\EntitySpecification$QueryOperatorEnum.class
+com\kerneldc\searchspecification\AbstractEntity.class
