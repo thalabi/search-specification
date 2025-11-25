@@ -24,7 +24,6 @@ import com.kerneldc.searchspecification.repository.SunshineListRepository;
 
 import jakarta.persistence.EntityManager;
 
-@Disabled
 @DataJpaTest
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 class EntitySpecificationTest extends AbstractBaseTest {
@@ -55,6 +54,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getProduct(), is("product1"));
 	}
+	@Disabled
 	@Test
 	void testProductStartsWith(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -74,6 +74,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(2));
 	}
 	
+	@Disabled
 	@Test
 	void testPriceEquals(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -91,6 +92,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.get(0).getPrice(), is(100.01d));
 	}
 	
+	@Disabled
 	@Test
 	void testPriceGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -107,6 +109,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getPrice(), is(greaterThan(100.01d)));
 	}
+	@Disabled
 	@Test
 	void testPriceGreaterThanOrEqual(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -124,6 +127,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.get(0).getPrice(), is(greaterThanOrEqualTo(100d)));
 		assertThat(salesList.get(1).getPrice(), is(greaterThanOrEqualTo(100d)));
 	}
+	@Disabled
 	@Test
 	void testLatitudeEquals(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -140,6 +144,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getLatitude(), is(45.5019f));
 	}
+	@Disabled
 	@Test
 	void testLatitudeGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -156,6 +161,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getLatitude(), is(greaterThan(45.5018f)));
 	}
+	@Disabled
 	@Test
 	void testTransactionDateEquals(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -172,6 +178,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getTransactionDate(), is(LocalDateTime.of(2024,  02, 16, 11, 04, 29)));
 	}
+	@Disabled
 	@Test
 	void testTransactionDateGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -189,6 +196,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.get(0).getTransactionDate(), is(LocalDateTime.of(2024,  02, 21, 12, 39, 57)));
 	}
 
+	@Disabled
 	@Test
 	void testSalaryEquals(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -210,6 +218,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(sunshineListList.get(0).getSalary(), is(new BigDecimal("100001.99")));
 	}
 
+	@Disabled
 	@Test
 	void testFirstNameAndLastName(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -227,6 +236,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(sunshineListList.size(), is(1));
 	}
 
+	@Disabled
 	@Test
 	void testEmptySeartchCriteria(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -243,6 +253,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		var sunshineListList = sunshineListRepository.findAll(entitySpec);
 		assertThat(sunshineListList.size(), is(2));
 	}
+	@Disabled
 	@Test
 	void testEmptySeartchCriteriaValue(TestInfo testInfo) {
 		printTestName(testInfo);
