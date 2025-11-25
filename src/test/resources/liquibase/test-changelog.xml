@@ -10,15 +10,17 @@
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
 
-	<include file="liquibase/fileTransfer/sales/create-table.xml"/>
-	<include file="liquibase/fileTransfer/sales/create-unique-constraint-1.xml"/>
-	<include file="liquibase/fileTransfer/sales/create-unique-constraint-lk.xml"/>
-	<include file="liquibase/fileTransfer/sales/alter-columns-price-latitude-and-longitude.xml"/>
+	<include file="liquibase/sales/create-table.xml"/>
+	<include file="liquibase/sales/create-unique-constraint-1.xml"/>
+	<include file="liquibase/sales/create-unique-constraint-lk.xml"/>
+	<include file="liquibase/sales/alter-columns-price-latitude-and-longitude.xml"/>
 
-	<include file="liquibase/fileTransfer/sunshine-list/create-table.xml"/>
-	<include file="liquibase/fileTransfer/sunshine-list/create-unique-constraint-1.xml"/>
-	<include file="liquibase/fileTransfer/sunshine-list/create-unique-constraint-lk.xml"/>
-	<include file="liquibase/fileTransfer/sunshine-list/rename-year-column.xml"/>
-	<include file="liquibase/fileTransfer/sunshine-list/alter-column-salary-and-benefits.xml"/>
+	<include file="liquibase/sunshine-list/create-table.xml"/>
+	<include file="liquibase/sunshine-list/create-unique-constraint-1.xml"/>
+	<include file="liquibase/sunshine-list/create-unique-constraint-lk.xml"/>
+	<include file="liquibase/sunshine-list/rename-year-column.xml"/>
+	<include file="liquibase/sunshine-list/alter-column-salary-and-benefits.xml"/>
 
+	<include file="liquibase/entity-with-invalid-data-type/create-table.xml"/>
+	
 </databaseChangeLog>

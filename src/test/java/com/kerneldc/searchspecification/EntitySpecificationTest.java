@@ -4,21 +4,24 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
+import com.kerneldc.searchspecification.domain.EntityWithInvalidDataType;
 import com.kerneldc.searchspecification.domain.Sales;
 import com.kerneldc.searchspecification.domain.SunshineList;
+import com.kerneldc.searchspecification.repository.EntityWithInvalidDataTypeRepository;
 import com.kerneldc.searchspecification.repository.SalesRepository;
 import com.kerneldc.searchspecification.repository.SunshineListRepository;
 
@@ -32,6 +35,8 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	private SalesRepository salesRepository;
 	@Autowired
 	private SunshineListRepository sunshineListRepository;
+	@Autowired
+	private EntityWithInvalidDataTypeRepository entityWithInvalidDataTypeRepository;
 	@Autowired
 	private EntityManager em;
 
@@ -54,7 +59,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getProduct(), is("product1"));
 	}
-	@Disabled
+	
 	@Test
 	void testProductStartsWith(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -74,7 +79,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(2));
 	}
 	
-	@Disabled
+	
 	@Test
 	void testPriceEquals(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -92,7 +97,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.get(0).getPrice(), is(100.01d));
 	}
 	
-	@Disabled
+	
 	@Test
 	void testPriceGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -109,7 +114,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getPrice(), is(greaterThan(100.01d)));
 	}
-	@Disabled
+	
 	@Test
 	void testPriceGreaterThanOrEqual(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -127,7 +132,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.get(0).getPrice(), is(greaterThanOrEqualTo(100d)));
 		assertThat(salesList.get(1).getPrice(), is(greaterThanOrEqualTo(100d)));
 	}
-	@Disabled
+	
 	@Test
 	void testLatitudeEquals(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -144,7 +149,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getLatitude(), is(45.5019f));
 	}
-	@Disabled
+	
 	@Test
 	void testLatitudeGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -161,7 +166,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getLatitude(), is(greaterThan(45.5018f)));
 	}
-	@Disabled
+	
 	@Test
 	void testTransactionDateEquals(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -178,7 +183,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getTransactionDate(), is(LocalDateTime.of(2024,  02, 16, 11, 04, 29)));
 	}
-	@Disabled
+	
 	@Test
 	void testTransactionDateGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -196,7 +201,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(salesList.get(0).getTransactionDate(), is(LocalDateTime.of(2024,  02, 21, 12, 39, 57)));
 	}
 
-	@Disabled
+	
 	@Test
 	void testSalaryEquals(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -218,7 +223,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(sunshineListList.get(0).getSalary(), is(new BigDecimal("100001.99")));
 	}
 
-	@Disabled
+	
 	@Test
 	void testFirstNameAndLastName(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -236,7 +241,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		assertThat(sunshineListList.size(), is(1));
 	}
 
-	@Disabled
+	
 	@Test
 	void testEmptySeartchCriteria(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -253,7 +258,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		var sunshineListList = sunshineListRepository.findAll(entitySpec);
 		assertThat(sunshineListList.size(), is(2));
 	}
-	@Disabled
+	
 	@Test
 	void testEmptySeartchCriteriaValue(TestInfo testInfo) {
 		printTestName(testInfo);
@@ -270,6 +275,21 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		var sunshineListList = sunshineListRepository.findAll(entitySpec);
 		assertThat(sunshineListList.size(), is(2));
 	}
+
+
+	@Test
+	void testInvalidFieldTytpe(TestInfo testInfo) {
+		printTestName(testInfo);
+		var entityMetamodel = em.getMetamodel().entity(EntityWithInvalidDataType.class);
+		var entitySpec = new EntitySpecification<EntityWithInvalidDataType>(entityMetamodel, "unhandledDataTypeField|equals|1");
+		var s1 = entityWithInvalidDataType1();
+		entityWithInvalidDataTypeRepository.saveAndFlush(s1);
+		assertThat(s1.getId(), is(1l));
+
+		Throwable exception = assertThrows(InvalidDataAccessApiUsageException.class, () -> entityWithInvalidDataTypeRepository.findAll(entitySpec));
+		assertThat(exception.getCause().getClass(), is(IllegalArgumentException.class));
+	}
+
 
 	private Sales createSales1() {
 		var s1 = new Sales();
@@ -311,6 +331,13 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		sl.setJobTitle("Accountant");
 		sl.setCalendarYear((short) 2023);
 		return sl;
+	}
+
+	private EntityWithInvalidDataType entityWithInvalidDataType1() {
+		var e1 = new EntityWithInvalidDataType();
+		e1.setNaturalKey("someString");
+		e1.setUnhandledDataTypeField((byte) 1);
+		return e1;
 	}
 
 }

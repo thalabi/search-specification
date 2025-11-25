@@ -12,7 +12,6 @@ import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
-import net.minidev.json.annotate.JsonIgnore;
 
 @MappedSuperclass
 @Getter @Setter
@@ -25,11 +24,11 @@ public abstract class AbstractPersistableEntity extends AbstractEntity implement
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "default_seq_gen")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
 	@Embedded
-	@JsonIgnore
+//	@JsonIgnore
 	private LogicalKeyHolder logicalKeyHolder;
 	
 	@Version

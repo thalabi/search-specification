@@ -4,11 +4,10 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kerneldc.searchspecification.domain.AbstractPersistableEntity;
 import com.kerneldc.searchspecification.domain.LogicalKeyHolder;
-
-import jakarta.transaction.Transactional;
 
 @NoRepositoryBean
 public interface BaseTableRepository<T extends AbstractPersistableEntity, ID extends Serializable> extends BaseEntityRepository<T, ID> {	

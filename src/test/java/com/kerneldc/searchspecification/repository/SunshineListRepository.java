@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.kerneldc.searchspecification.domain.SunshineList;
 import com.kerneldc.searchspecification.enums.IEntityEnum;
-import com.kerneldc.searchspecification.enums.UploadTableEnum;
+import com.kerneldc.searchspecification.enums.TableEnum;
 
 public interface SunshineListRepository extends BaseTableRepository<SunshineList, Long> {
 
@@ -14,7 +14,7 @@ public interface SunshineListRepository extends BaseTableRepository<SunshineList
 	
 	@Override
 	default IEntityEnum canHandle() {
-		return UploadTableEnum.SUNSHINE_LIST;
+		return TableEnum.SUNSHINE_LIST;
 	}
 
 }
