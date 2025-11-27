@@ -8,11 +8,11 @@
 						http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
 						http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
 
-	<changeSet author="Tarif Halabi (generated)" id="entity-with-invalid-data-type-create-table">
-		<createTable tableName="entity_with_invalid_data_type">
+	<changeSet author="Tarif Halabi (generated)" id="test-entity-create-table">
+		<createTable tableName="test_entity">
 			<column name="id" type="bigint" autoIncrement="true">
 				<constraints nullable="false" primaryKey="true"
-					primaryKeyName="entity_with_invalid_data_type_pkey" />
+					primaryKeyName="test_entity_pkey" />
 			</column>
 			<column name="lk" type="varchar(4000)">
 				<constraints nullable="false" />
@@ -22,15 +22,15 @@
 				<constraints nullable="false" />
 			</column>
 
-			<column name="unhandled_data_type_field" type="tinyint">
-				<constraints nullable="false" />
-			</column>
+
+			<column name="date_field" type="datetime"></column>
+			<column name="unhandled_data_type_field" type="tinyint"></column>
 			
 			<column name="version" type="bigint">
 				<constraints nullable="false" />
 			</column>
 		</createTable>
 		<addUniqueConstraint columnNames="lk" constraintName="lk"
-			tableName="entity_with_invalid_data_type" />
+			tableName="test_entity" />
 	</changeSet>
 </databaseChangeLog>

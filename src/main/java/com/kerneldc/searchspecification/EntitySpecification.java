@@ -19,23 +19,22 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import jakarta.persistence.metamodel.EntityType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class EntitySpecification<T> implements Specification<T> {
+public class EntitySpecification<T extends JpaEntity> implements Specification<T> {
 
 	private static final long serialVersionUID = 1L;
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	protected static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	record Filter(String field, QueryOperatorEnum operator, String value) {}
 	private transient List<Filter> filterList = new ArrayList<>();
-	private transient EntityType<? extends JpaEntity> entityMetaModel;
+	private transient Class<T> entityClass;
 
-	public EntitySpecification(EntityType<? extends JpaEntity> entityMetaModel, String searchCriteria) {
+	public EntitySpecification(Class<T> entity, String searchCriteria) {
 		if (StringUtils.isEmpty(searchCriteria)) {
 			return;
 		}
-		this.entityMetaModel = entityMetaModel;
+		this.entityClass = entity;
 		filterList = Arrays.stream(searchCriteria.split(","))
 			    .map(criterion -> criterion.split("\\|"))
 			    .filter(parts -> parts.length == 3)
@@ -69,8 +68,14 @@ public class EntitySpecification<T> implements Specification<T> {
 		var field = inputFilter.field();
 		var value = inputFilter.value();
 		
-		var fieldType = entityMetaModel.getDeclaredAttribute(field).getJavaType().getSimpleName();
-		LOGGER.info("inputFilter: {}, fiefieldType: {}", inputFilter, fieldType);
+		var fieldType = StringUtils.EMPTY;
+		try {
+			fieldType = entityClass.getDeclaredField(field).getType().getSimpleName();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		LOGGER.info("inputFilter: {}, fieldType: {}", inputFilter, fieldType);
 
 		switch (fieldType) {
 		case "String" -> {

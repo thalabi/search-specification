@@ -21,6 +21,6 @@
 	<include file="liquibase/sunshine-list/rename-year-column.xml"/>
 	<include file="liquibase/sunshine-list/alter-column-salary-and-benefits.xml"/>
 
-	<include file="liquibase/entity-with-invalid-data-type/create-table.xml"/>
+	<include file="liquibase/test-entity/create-table.xml"/>
 	
 </databaseChangeLog>

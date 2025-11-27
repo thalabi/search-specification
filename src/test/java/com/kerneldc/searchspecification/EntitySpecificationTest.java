@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,17 +16,17 @@ import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
-import com.kerneldc.searchspecification.domain.EntityWithInvalidDataType;
 import com.kerneldc.searchspecification.domain.Sales;
 import com.kerneldc.searchspecification.domain.SunshineList;
-import com.kerneldc.searchspecification.repository.EntityWithInvalidDataTypeRepository;
+import com.kerneldc.searchspecification.domain.TestEntity;
+import com.kerneldc.searchspecification.enums.TableEnum;
 import com.kerneldc.searchspecification.repository.SalesRepository;
 import com.kerneldc.searchspecification.repository.SunshineListRepository;
-
-import jakarta.persistence.EntityManager;
+import com.kerneldc.searchspecification.repository.TestEntityRepository;
 
 @DataJpaTest
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -36,15 +37,12 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Autowired
 	private SunshineListRepository sunshineListRepository;
 	@Autowired
-	private EntityWithInvalidDataTypeRepository entityWithInvalidDataTypeRepository;
-	@Autowired
-	private EntityManager em;
+	private TestEntityRepository testEntityRepository;
 
 	@Test
 	void testProductEquals(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "product|equals|product1");
+		var entitySpec = new EntitySpecification<>(Sales.class, "product|equals|product1");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -63,8 +61,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testProductStartsWith(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "product|startsWith|p");
+		var entitySpec = new EntitySpecification<>(Sales.class, "product|startsWith|p");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -83,8 +80,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testPriceEquals(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "price|equals|100.01");
+		var entitySpec = new EntitySpecification<>(Sales.class, "price|equals|100.01");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -101,8 +97,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testPriceGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "price|greaterThan|100.01");
+		var entitySpec = new EntitySpecification<>(Sales.class, "price|greaterThan|100.01");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -118,8 +113,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testPriceGreaterThanOrEqual(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "price|greaterThanOrEqualTo|100");
+		var entitySpec = new EntitySpecification<>(Sales.class, "price|greaterThanOrEqualTo|100");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -136,8 +130,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testLatitudeEquals(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "latitude|equals|45.5019");
+		var entitySpec = new EntitySpecification<>(Sales.class, "latitude|equals|45.5019");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -153,8 +146,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testLatitudeGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "latitude|greaterThan|45.5018");
+		var entitySpec = new EntitySpecification<>(Sales.class, "latitude|greaterThan|45.5018");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -170,8 +162,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testTransactionDateEquals(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "transactionDate|dateIs|2024-02-16T11:04:29.000Z");
+		var entitySpec = new EntitySpecification<>(Sales.class, "transactionDate|dateIs|2024-02-16T11:04:29.000Z");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -187,8 +178,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testTransactionDateGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(Sales.class);
-		var entitySpec = new EntitySpecification<Sales>(entityMetamodel, "transactionDate|dateAfter|2024-02-16T11:04:29.000Z");
+		var entitySpec = new EntitySpecification<>(Sales.class, "transactionDate|dateAfter|2024-02-16T11:04:29.000Z");
 		var s1 =createSales1();
 		salesRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -205,8 +195,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testSalaryEquals(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(SunshineList.class);
-		var entitySpec = new EntitySpecification<SunshineList>(entityMetamodel, "salary|equals|100001.99");
+		var entitySpec = new EntitySpecification<>(SunshineList.class, "salary|equals|100001.99");
 		var s1 =createSunshineList1();
 		sunshineListRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -227,8 +216,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testFirstNameAndLastName(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(SunshineList.class);
-		var entitySpec = new EntitySpecification<SunshineList>(entityMetamodel, "firstName|equals|May,lastName|equals|Family");
+		var entitySpec = new EntitySpecification<>(SunshineList.class, "firstName|equals|May,lastName|equals|Family");
 		var s1 =createSunshineList1();
 		sunshineListRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -245,8 +233,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testEmptySeartchCriteria(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(SunshineList.class);
-		var entitySpec = new EntitySpecification<SunshineList>(entityMetamodel, StringUtils.EMPTY);
+		var entitySpec = new EntitySpecification<>(SunshineList.class, StringUtils.EMPTY);
 		var s1 =createSunshineList1();
 		sunshineListRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -262,8 +249,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	@Test
 	void testEmptySeartchCriteriaValue(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(SunshineList.class);
-		var entitySpec = new EntitySpecification<SunshineList>(entityMetamodel, "firstName|equals|");
+		var entitySpec = new EntitySpecification<>(SunshineList.class, "firstName|equals|");
 		var s1 =createSunshineList1();
 		sunshineListRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
@@ -278,16 +264,33 @@ class EntitySpecificationTest extends AbstractBaseTest {
 
 
 	@Test
-	void testInvalidFieldTytpe(TestInfo testInfo) {
+	void testInvalidFieldType(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entityMetamodel = em.getMetamodel().entity(EntityWithInvalidDataType.class);
-		var entitySpec = new EntitySpecification<EntityWithInvalidDataType>(entityMetamodel, "unhandledDataTypeField|equals|1");
-		var s1 = entityWithInvalidDataType1();
-		entityWithInvalidDataTypeRepository.saveAndFlush(s1);
+		var entitySpec = new EntitySpecification<>(TestEntity.class, "unhandledDataTypeField|equals|1");
+		var s1 = testEntity1();
+		testEntityRepository.saveAndFlush(s1);
 		assertThat(s1.getId(), is(1l));
 
-		Throwable exception = assertThrows(InvalidDataAccessApiUsageException.class, () -> entityWithInvalidDataTypeRepository.findAll(entitySpec));
+		Throwable exception = assertThrows(InvalidDataAccessApiUsageException.class, () -> testEntityRepository.findAll(entitySpec));
 		assertThat(exception.getCause().getClass(), is(IllegalArgumentException.class));
+	}
+	
+	@Test
+	void testDateField(TestInfo testInfo) {
+		printTestName(testInfo);
+		// Use dynamic enum
+		TableEnum table = TableEnum.TEST_ENTITY;
+		
+		var entityClass = table.getEntity();
+		var entitySpec = new EntitySpecification<>(entityClass, "dateField|dateIs|2025-11-26");
+		
+		var s1 = testEntity1();
+		testEntityRepository.saveAndFlush(s1);
+		assertThat(s1.getId(), is(1l));
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		var testEntityList = testEntityRepository.findAll((Specification)entitySpec);
+		assertThat(testEntityList.size(), is(1));
 	}
 
 
@@ -333,11 +336,15 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		return sl;
 	}
 
-	private EntityWithInvalidDataType entityWithInvalidDataType1() {
-		var e1 = new EntityWithInvalidDataType();
-		e1.setNaturalKey("someString");
-		e1.setUnhandledDataTypeField((byte) 1);
-		return e1;
+	private TestEntity testEntity1() {
+		var te1 = new TestEntity();
+		te1.setNaturalKey("someString");
+		try {
+			te1.setDateField(EntitySpecification.dateFormat.parse("2025-11-26"));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		te1.setUnhandledDataTypeField((byte) 1);
+		return te1;
 	}
-
 }

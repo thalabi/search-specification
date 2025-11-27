@@ -4,14 +4,14 @@ import java.util.Arrays;
 
 import com.google.common.base.Enums;
 import com.kerneldc.searchspecification.domain.AbstractPersistableEntity;
-import com.kerneldc.searchspecification.domain.EntityWithInvalidDataType;
 import com.kerneldc.searchspecification.domain.Sales;
 import com.kerneldc.searchspecification.domain.SunshineList;
+import com.kerneldc.searchspecification.domain.TestEntity;
 
 public enum TableEnum implements IEntityEnum {
 	SALES(Sales.class),
 	SUNSHINE_LIST(SunshineList.class),
-	ENTITY_WITH_INVALID_DATA_TYPE(EntityWithInvalidDataType.class),
+	TEST_ENTITY(TestEntity.class),
 	;
 	
 	Class<? extends AbstractPersistableEntity> entity;
