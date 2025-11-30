@@ -1,21 +1,25 @@
 package com.kerneldc.searchspecification;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -30,6 +34,7 @@ import com.kerneldc.searchspecification.repository.TestEntityRepository;
 
 @DataJpaTest
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@ExtendWith(OutputCaptureExtension.class)
 class EntitySpecificationTest extends AbstractBaseTest {
 
 	@Autowired
@@ -40,135 +45,261 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	private TestEntityRepository testEntityRepository;
 
 	@Test
-	void testProductEquals(TestInfo testInfo) {
+	void testStringFieldEquals(TestInfo testInfo) {
 		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
 		var entitySpec = new EntitySpecification<>(Sales.class, "product|equals|product1");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
-		
-		assertThat(salesRepository.findById(1l).isPresent(), is(true));
-		assertThat(salesRepository.findById(2l).isPresent(), is(true));
-		
 		var salesList = salesRepository.findAll(entitySpec);
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getProduct(), is("product1"));
 	}
 	
 	@Test
-	void testProductStartsWith(TestInfo testInfo) {
+	void testStringFieldNotEquals(TestInfo testInfo) {
 		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var entitySpec = new EntitySpecification<>(Sales.class, "product|notequals|product1");
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(1));
+		assertThat(salesList.get(0).getProduct(), is("product2"));
+	}
+	
+	@Test
+	void testStringFieldStartsWith(TestInfo testInfo) {
+		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
 		var entitySpec = new EntitySpecification<>(Sales.class, "product|startsWith|p");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
-		
-		assertThat(salesRepository.findById(1l).isPresent(), is(true));
-		assertThat(salesRepository.findById(2l).isPresent(), is(true));
-		
 		var salesList = salesRepository.findAll(entitySpec);
 		assertThat(salesList.size(), is(2));
 	}
 	
+	@Test
+	void testStringFieldContains(TestInfo testInfo) {
+		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var entitySpec = new EntitySpecification<>(Sales.class, "product|contains|duct");
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(2));
+	}
 	
 	@Test
-	void testPriceEquals(TestInfo testInfo) {
+	void testStringFieldNotContains(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entitySpec = new EntitySpecification<>(Sales.class, "price|equals|100.01");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
 		
+		var entitySpec = new EntitySpecification<>(Sales.class, "product|notcontains|abc");
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(2));
+	}
+	
+	@Test
+	void testStringFieldEndWith(TestInfo testInfo) {
+		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var entitySpec = new EntitySpecification<>(Sales.class, "product|endsWith|1");
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(1));
+		assertThat(salesList.get(0).getProduct(), is("product1"));
+	}
+
+	@Test
+	void testStringFieldWrongOperator(TestInfo testInfo, CapturedOutput logOutput) {
+		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var entitySpec = new EntitySpecification<>(Sales.class, "product|DATeIS|1");
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(2));
+		assertThat(logOutput.getOut(), containsRegex(EntitySpecification.INVALID_OPERATOR_FOR_DATATYPE));
+	}
+
+
+	@Test
+	void testNumberFieldEquals(TestInfo testInfo) {
+		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var entitySpec = new EntitySpecification<>(Sales.class, "price|equals|100.01");
 		var salesList = salesRepository.findAll(entitySpec);
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getPrice(), is(100.01d));
 	}
 	
+	@Test
+	void testNumberFieldNotEquals(TestInfo testInfo) {
+		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var entitySpec = new EntitySpecification<>(Sales.class, "price|notequals|100.01");
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(1));
+		assertThat(salesList.get(0).getPrice(), is(200.0d));
+	}
 	
 	@Test
-	void testPriceGreaterThan(TestInfo testInfo) {
+	void testNumberFieldGreaterThan(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entitySpec = new EntitySpecification<>(Sales.class, "price|greaterThan|100.01");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
 		
+		var entitySpec = new EntitySpecification<>(Sales.class, "price|greaterThan|100.01");
 		var salesList = salesRepository.findAll(entitySpec);
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getPrice(), is(greaterThan(100.01d)));
 	}
 	
 	@Test
-	void testPriceGreaterThanOrEqual(TestInfo testInfo) {
+	void testNumberFieldGreaterThanOrEqual(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entitySpec = new EntitySpecification<>(Sales.class, "price|greaterThanOrEqualTo|100");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
 		
+		var entitySpec = new EntitySpecification<>(Sales.class, "price|greaterThanOrEqualTo|100");
 		var salesList = salesRepository.findAll(entitySpec);
 		assertThat(salesList.size(), is(2));
 		assertThat(salesList.get(0).getPrice(), is(greaterThanOrEqualTo(100d)));
 		assertThat(salesList.get(1).getPrice(), is(greaterThanOrEqualTo(100d)));
 	}
+//	
+//	@Test
+//	void testLatitudeEquals(TestInfo testInfo) {
+//		printTestName(testInfo);
+//		var entitySpec = new EntitySpecification<>(Sales.class, "latitude|equals|45.5019");
+//		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+//		
+//		var salesList = salesRepository.findAll(entitySpec);
+//		assertThat(salesList.size(), is(1));
+//		assertThat(salesList.get(0).getLatitude(), is(45.5019f));
+//	}
 	
 	@Test
-	void testLatitudeEquals(TestInfo testInfo) {
+	void testNumberFieldLessThan(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entitySpec = new EntitySpecification<>(Sales.class, "latitude|equals|45.5019");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
-		
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+
+		var entitySpec = new EntitySpecification<>(Sales.class, "latitude|lt|45.5019");
 		var salesList = salesRepository.findAll(entitySpec);
 		assertThat(salesList.size(), is(1));
-		assertThat(salesList.get(0).getLatitude(), is(45.5019f));
+		assertThat(salesList.get(0).getLatitude(), is(43.6532f));
 	}
 	
 	@Test
-	void testLatitudeGreaterThan(TestInfo testInfo) {
+	void testNumberFieldLessThanOrEqual(TestInfo testInfo) {
 		printTestName(testInfo);
-		var entitySpec = new EntitySpecification<>(Sales.class, "latitude|greaterThan|45.5018");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
-		
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+
+		var entitySpec = new EntitySpecification<>(Sales.class, "latitude|lessthanorequalto|46.0001");
 		var salesList = salesRepository.findAll(entitySpec);
-		assertThat(salesList.size(), is(1));
-		assertThat(salesList.get(0).getLatitude(), is(greaterThan(45.5018f)));
+		assertThat(salesList.size(), is(2));
 	}
 	
 	@Test
-	void testTransactionDateEquals(TestInfo testInfo) {
+	void testNumberFieldWrongOperator(TestInfo testInfo, CapturedOutput logOutput) {
+		printTestName(testInfo);
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+
+		var entitySpec = new EntitySpecification<>(Sales.class, "latitude|contains|46.0001");
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(2));
+		assertThat(logOutput.getOut(), containsRegex(EntitySpecification.INVALID_OPERATOR_FOR_DATATYPE));
+	}
+	
+	@Test
+	void testDateFieldDateIs(TestInfo testInfo) {
+		printTestName(testInfo);
+		TableEnum table = TableEnum.TEST_ENTITY;
+		
+		var entityClass = table.getEntity();
+		var entitySpec = new EntitySpecification<>(entityClass, "dateField|dateIs|2025-11-26");
+		testEntityRepository.saveAll(List.of(testEntity1(), testEntity2()));
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		var testEntityList = testEntityRepository.findAll((Specification)entitySpec);
+		assertThat(testEntityList.size(), is(1));
+	}
+	
+	@Test
+	void testDateFieldDateIsNot(TestInfo testInfo) {
+		printTestName(testInfo);
+		TableEnum table = TableEnum.TEST_ENTITY;
+		
+		var entityClass = table.getEntity();
+		var entitySpec = new EntitySpecification<>(entityClass, "dateField|dateIsNot|9999-01-01");
+		testEntityRepository.saveAll(List.of(testEntity1(), testEntity2()));
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		var testEntityList = testEntityRepository.findAll((Specification)entitySpec);
+		assertThat(testEntityList.size(), is(2));
+	}
+
+	@Test
+	void testDateFieldDateBefore(TestInfo testInfo) {
+		printTestName(testInfo);
+		TableEnum table = TableEnum.TEST_ENTITY;
+		
+		var entityClass = table.getEntity();
+		var entitySpec = new EntitySpecification<>(entityClass, "dateField|dateBefore|2025-11-27");
+		testEntityRepository.saveAll(List.of(testEntity1(), testEntity2()));
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		var testEntityList = testEntityRepository.findAll((Specification)entitySpec);
+		assertThat(testEntityList.size(), is(1));
+	}
+
+	@Test
+	void testDateFieldDateAfter(TestInfo testInfo) {
+		printTestName(testInfo);
+		TableEnum table = TableEnum.TEST_ENTITY;
+		
+		var entityClass = table.getEntity();
+		var entitySpec = new EntitySpecification<>(entityClass, "dateField|dateAfter|2025-11-27");
+		testEntityRepository.saveAll(List.of(testEntity1(), testEntity2()));
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		var testEntityList = testEntityRepository.findAll((Specification)entitySpec);
+		assertThat(testEntityList.size(), is(1));
+	}
+
+	@Test
+	void testDateFieldWrongOperator(TestInfo testInfo, CapturedOutput logOutput) {
+		printTestName(testInfo);
+		TableEnum table = TableEnum.TEST_ENTITY;
+		
+		var entityClass = table.getEntity();
+		var entitySpec = new EntitySpecification<>(entityClass, "dateField|equals|2025-11-27");
+		testEntityRepository.saveAll(List.of(testEntity1(), testEntity2()));
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		var testEntityList = testEntityRepository.findAll((Specification)entitySpec);
+		assertThat(testEntityList.size(), is(2));
+		assertThat(logOutput.getOut(), containsRegex(EntitySpecification.INVALID_OPERATOR_FOR_DATATYPE));
+	}
+
+	@Test
+	void testDateFieldInvalidDateFormat(TestInfo testInfo, CapturedOutput logOutput) {
+		printTestName(testInfo);
+		TableEnum table = TableEnum.TEST_ENTITY;
+		
+		var entityClass = table.getEntity();
+		var entitySpec = new EntitySpecification<>(entityClass, "dateField|dateIs|20251127");
+		testEntityRepository.saveAll(List.of(testEntity1(), testEntity2()));
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		var testEntityList = testEntityRepository.findAll((Specification)entitySpec);
+		assertThat(testEntityList.size(), is(2));
+		assertThat(logOutput.getOut(), containsRegex(EntitySpecification.INVALID_DATE_FORMAT));
+	}
+
+
+	
+	@Test
+	void testLocalDateTimeFieldDateIs(TestInfo testInfo) {
 		printTestName(testInfo);
 		var entitySpec = new EntitySpecification<>(Sales.class, "transactionDate|dateIs|2024-02-16T11:04:29.000Z");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
 		
 		var salesList = salesRepository.findAll(entitySpec);
 		assertThat(salesList.size(), is(1));
@@ -176,39 +307,68 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	}
 	
 	@Test
-	void testTransactionDateGreaterThan(TestInfo testInfo) {
+	void testLocalDateTimeFieldDateIsNot(TestInfo testInfo) {
+		printTestName(testInfo);
+		var entitySpec = new EntitySpecification<>(Sales.class, "transactionDate|dateIsNot|2024-02-16T11:04:29.000Z");
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(1));
+		assertThat(salesList.get(0).getTransactionDate(), not(LocalDateTime.of(2024,  02, 16, 11, 04, 29)));
+	}
+	
+	@Test
+	void testLocalDateTimeFieldDateBefore(TestInfo testInfo) {
+		printTestName(testInfo);
+		var entitySpec = new EntitySpecification<>(Sales.class, "transactionDate|dateBefore|2024-02-21T00:00:00.000Z");
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(1));
+		assertThat(salesList.get(0).getTransactionDate(), is(LocalDateTime.of(2024,  02, 16, 11, 04, 29)));
+	}
+
+	@Test
+	void testLocalDateTimeFieldDatecAfter(TestInfo testInfo) {
 		printTestName(testInfo);
 		var entitySpec = new EntitySpecification<>(Sales.class, "transactionDate|dateAfter|2024-02-16T11:04:29.000Z");
-		var s1 =createSales1();
-		salesRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSales2();
-		salesRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
 		
 		var salesList = salesRepository.findAll(entitySpec);
 		assertThat(salesList.size(), is(1));
 		assertThat(salesList.get(0).getTransactionDate(), is(LocalDateTime.of(2024,  02, 21, 12, 39, 57)));
 	}
 
+	@Test
+	void testLocalDateTimeFieldWrongOperator(TestInfo testInfo, CapturedOutput logOutput) {
+		printTestName(testInfo);
+		var entitySpec = new EntitySpecification<>(Sales.class, "transactionDate|equals|2024-02-16T11:04:29.000Z");
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(2));
+		assertThat(logOutput.getOut(), containsRegex(EntitySpecification.INVALID_OPERATOR_FOR_DATATYPE));
+	}
+	
+	@Test
+	void testLocalDateTimeFieldInvalidDateFormat(TestInfo testInfo, CapturedOutput logOutput) {
+		printTestName(testInfo);
+		var entitySpec = new EntitySpecification<>(Sales.class, "transactionDate|equals|20240216T110429000Z");
+		salesRepository.saveAll(List.of(createSales1(), createSales2()));
+		
+		var salesList = salesRepository.findAll(entitySpec);
+		assertThat(salesList.size(), is(2));
+		assertThat(logOutput.getOut(), containsRegex(EntitySpecification.INVALID_DATE_FORMAT));
+	}
 	
 	@Test
 	void testSalaryEquals(TestInfo testInfo) {
 		printTestName(testInfo);
 		var entitySpec = new EntitySpecification<>(SunshineList.class, "salary|equals|100001.99");
-		var s1 =createSunshineList1();
-		sunshineListRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSunshineList2();
-		sunshineListRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
-		
-		assertThat(sunshineListRepository.findById(1l).isPresent(), is(true));
-		assertThat(sunshineListRepository.findById(2l).isPresent(), is(true));
+		sunshineListRepository.saveAll(List.of(createSunshineList1(), createSunshineList2()));
 		
 		var sunshineListList = sunshineListRepository.findAll(entitySpec);
 		assertThat(sunshineListList.size(), is(1));
-		//assertThat(sunshineListList.get(0).getSalary(), is(new BigDecimal("100001.99")));
 		assertThat(sunshineListList.get(0).getSalary(), is(new BigDecimal("100001.99")));
 	}
 
@@ -217,13 +377,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	void testFirstNameAndLastName(TestInfo testInfo) {
 		printTestName(testInfo);
 		var entitySpec = new EntitySpecification<>(SunshineList.class, "firstName|equals|May,lastName|equals|Family");
-		var s1 =createSunshineList1();
-		sunshineListRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSunshineList2();
-		sunshineListRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
-		
+		sunshineListRepository.saveAll(List.of(createSunshineList1(), createSunshineList2()));
 		
 		var sunshineListList = sunshineListRepository.findAll(entitySpec);
 		assertThat(sunshineListList.size(), is(1));
@@ -234,13 +388,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	void testEmptySeartchCriteria(TestInfo testInfo) {
 		printTestName(testInfo);
 		var entitySpec = new EntitySpecification<>(SunshineList.class, StringUtils.EMPTY);
-		var s1 =createSunshineList1();
-		sunshineListRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSunshineList2();
-		sunshineListRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
-		
+		sunshineListRepository.saveAll(List.of(createSunshineList1(), createSunshineList2()));
 		
 		var sunshineListList = sunshineListRepository.findAll(entitySpec);
 		assertThat(sunshineListList.size(), is(2));
@@ -250,13 +398,7 @@ class EntitySpecificationTest extends AbstractBaseTest {
 	void testEmptySeartchCriteriaValue(TestInfo testInfo) {
 		printTestName(testInfo);
 		var entitySpec = new EntitySpecification<>(SunshineList.class, "firstName|equals|");
-		var s1 =createSunshineList1();
-		sunshineListRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
-		var s2 =createSunshineList2();
-		sunshineListRepository.saveAndFlush(s2);
-		assertThat(s2.getId(), is(2l));
-		
+		sunshineListRepository.saveAll(List.of(createSunshineList1(), createSunshineList2()));
 		
 		var sunshineListList = sunshineListRepository.findAll(entitySpec);
 		assertThat(sunshineListList.size(), is(2));
@@ -264,35 +406,29 @@ class EntitySpecificationTest extends AbstractBaseTest {
 
 
 	@Test
-	void testInvalidFieldType(TestInfo testInfo) {
+	void testInvalidFieldType(TestInfo testInfo, CapturedOutput logOutput) {
 		printTestName(testInfo);
 		var entitySpec = new EntitySpecification<>(TestEntity.class, "unhandledDataTypeField|equals|1");
-		var s1 = testEntity1();
-		testEntityRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
+		testEntityRepository.saveAll(List.of(testEntity1(), testEntity2()));
 
-		Throwable exception = assertThrows(InvalidDataAccessApiUsageException.class, () -> testEntityRepository.findAll(entitySpec));
-		assertThat(exception.getCause().getClass(), is(IllegalArgumentException.class));
+		var testEntityList = testEntityRepository.findAll(entitySpec);
+		assertThat(testEntityList.size(), is(2));
+		assertThat(logOutput.getOut(), containsRegex(EntitySpecification.INVALID_DATA_TYPE_MESSAGE));
 	}
-	
 	@Test
-	void testDateField(TestInfo testInfo) {
+	void testInvalidFieldName(TestInfo testInfo, CapturedOutput logOutput) {
 		printTestName(testInfo);
-		// Use dynamic enum
 		TableEnum table = TableEnum.TEST_ENTITY;
 		
 		var entityClass = table.getEntity();
-		var entitySpec = new EntitySpecification<>(entityClass, "dateField|dateIs|2025-11-26");
-		
-		var s1 = testEntity1();
-		testEntityRepository.saveAndFlush(s1);
-		assertThat(s1.getId(), is(1l));
+		var entitySpec = new EntitySpecification<>(entityClass, "invalidField|equals|xyz");
+		testEntityRepository.saveAll(List.of(testEntity1(), testEntity2()));
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		var testEntityList = testEntityRepository.findAll((Specification)entitySpec);
-		assertThat(testEntityList.size(), is(1));
+		assertThat(testEntityList.size(), is(2));
+		assertThat(logOutput.getOut(), containsRegex(EntitySpecification.INVALID_FIELD_NAME_MESSAGE));
 	}
-
 
 	private Sales createSales1() {
 		var s1 = new Sales();
@@ -340,7 +476,18 @@ class EntitySpecificationTest extends AbstractBaseTest {
 		var te1 = new TestEntity();
 		te1.setNaturalKey("someString");
 		try {
-			te1.setDateField(EntitySpecification.dateFormat.parse("2025-11-26"));
+			te1.setDateField(new SimpleDateFormat(EntitySpecification.DATE_FORMAT).parse("2025-11-26"));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		te1.setUnhandledDataTypeField((byte) 1);
+		return te1;
+	}
+	private TestEntity testEntity2() {
+		var te1 = new TestEntity();
+		te1.setNaturalKey("someString two");
+		try {
+			te1.setDateField(new SimpleDateFormat(EntitySpecification.DATE_FORMAT).parse("2025-11-29"));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}

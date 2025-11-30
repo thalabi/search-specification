@@ -5,7 +5,7 @@
 
 	<groupId>com.kerneldc</groupId>
 	<artifactId>search-specification</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>search-specification</name>
@@ -16,66 +16,160 @@
 		<repo-url>http://localhost:8081</repo-url>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<timestamp>${maven.build.timestamp}</timestamp>
-		<mockito.version>5.14.2</mockito.version>
+
+		<!-- Java version -->
+		<maven.compiler.version>25</maven.compiler.version>
+
+		<!-- Versions -->
+		<sprin-boot-version>3.5.0</sprin-boot-version>
+		<lombok.version>1.18.38</lombok.version>
+		<commons-lang3.version>3.17.0</commons-lang3.version>
+		<jakarta.persistence.version>3.1.0</jakarta.persistence.version>
+		<h2.version>2.3.232</h2.version>
+		<liquibase.version>4.31.1</liquibase.version>
+		<guava.version>30.1.1-jre</guava.version>
+		<mockito.version>5.11.0</mockito.version>
 	</properties>
 
-
 	<dependencies>
+		<!-- Spring Data JPA -->
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
-			<version>3.5.0</version>
+			<version>${sprin-boot-version}</version>
 		</dependency>
+
+		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.38</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.17.0</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.persistence</groupId>
-			<artifactId>jakarta.persistence-api</artifactId>
-			<version>3.1.0</version>
+			<version>${lombok.version}</version>
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Commons Lang -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons-lang3.version}</version>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- Jakarta Persistence API -->
+		<dependency>
+			<groupId>jakarta.persistence</groupId>
+			<artifactId>jakarta.persistence-api</artifactId>
+			<version>${jakarta.persistence.version}</version>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<version>${sprin-boot-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<version>${sprin-boot-version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<version>5.12.2</version>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest</artifactId>
-			<version>3.0</version>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Embedded DB for tests -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${h2.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Liquibase -->
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+			<version>${liquibase.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Guava -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
-
 	<build>
 		<plugins>
+			<!-- Compiler plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.11.0</version>
 				<configuration>
-					<release>25</release> <!-- Java version -->
+					<release>${maven.compiler.version}</release> <!-- Java
+					version -->
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-							<version>1.18.38</version>
+							<version>${lombok.version}</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+			
+
+        <!-- Attach sources.jar -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.3.1</version>
+            <executions>
+                <execution>
+                    <id>attach-sources</id>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+
+        <!-- Attach javadoc.jar -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.12.0</version>
+				<configuration>
+					<doclint>none</doclint>     <!-- disables warnings like "no	comment" -->
+				</configuration>
+				<executions>
+                <execution>
+                    <id>attach-javadocs</id>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+
+			
 		</plugins>
 	</build>
 
@@ -90,5 +184,4 @@
 			<url>${repo-url}/repository/maven-releases</url>
 		</repository>
 	</distributionManagement>
-
 </project>
