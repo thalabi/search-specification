@@ -24,6 +24,10 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * If any exceptions are encountered parsing searchCriteria, this class will return a null Specification
+ * @param <T>
+ */
 @Slf4j
 public class EntitySpecification<T extends JpaEntity> implements Specification<T> {
 
@@ -71,7 +75,7 @@ public class EntitySpecification<T extends JpaEntity> implements Specification<T
 				specification = specification.and(createSpecification(filterList.get(i)));
 			}
 			return specification;
-		} catch (ApplicationException e) {
+		} catch (ApplicationException _) {
 			LOGGER.error("Due to exception(s), returning null Specification.");
 			return null;
 		}
@@ -79,12 +83,11 @@ public class EntitySpecification<T extends JpaEntity> implements Specification<T
 
 	private Specification<T> createSpecification(Filter inputFilter) throws ApplicationException {
 		var field = inputFilter.field();
-		var value = inputFilter.value();
 		
 		var fieldType = StringUtils.EMPTY;
 		try {
 			fieldType = entityClass.getDeclaredField(field).getType().getSimpleName();
-		} catch (NoSuchFieldException e) {
+		} catch (NoSuchFieldException _) {
 			var exceptionMessage = MessageFormatter.format(INVALID_FIELD_NAME_MESSAGE, field).getMessage();
 			LOGGER.error(exceptionMessage);
 			throw new ApplicationException(exceptionMessage);
@@ -93,16 +96,16 @@ public class EntitySpecification<T extends JpaEntity> implements Specification<T
 
 		switch (fieldType) {
 		case "String" -> {
-			return handleStringFieldType(inputFilter, field, value);
+			return handleStringFieldType(inputFilter);
 		}
 		case "Short", "Integer", "Double", "Float", "BigDecimal" -> {
-			return handleNumberFieldType(inputFilter, field, value);
+			return handleNumberFieldType(inputFilter);
 		}
 		case "Date" -> {
-			return handleDateFieldType(inputFilter, field, value);
+			return handleDateFieldType(inputFilter);
 		}
 		case "LocalDateTime" -> {
-			return handleLocalDateTimeFieldType(inputFilter, field, value);
+			return handleLocalDateTimeFieldType(inputFilter);
 		}
 		default -> {
 			var exceptionMessage = MessageFormatter.format(INVALID_DATA_TYPE_MESSAGE, field).getMessage();
@@ -112,7 +115,9 @@ public class EntitySpecification<T extends JpaEntity> implements Specification<T
 		}
 	}
 
-	private Specification<T> handleStringFieldType(Filter inputFilter, String field, String value) throws ApplicationException {
+	private Specification<T> handleStringFieldType(Filter inputFilter) throws ApplicationException {
+		var field = inputFilter.field;
+		var value = inputFilter.value;
 		switch (inputFilter.operator()) {
 		case EQUALS -> {
 			return (entity, _, criteriaBuilder) -> criteriaBuilder.equal(criteriaBuilder.lower(entity.get(field)), value.toLowerCase());
@@ -142,7 +147,9 @@ public class EntitySpecification<T extends JpaEntity> implements Specification<T
 	}
 	
 
-	private Specification<T> handleNumberFieldType(Filter inputFilter, String field, String value) throws ApplicationException {
+	private Specification<T> handleNumberFieldType(Filter inputFilter) throws ApplicationException {
+		var field = inputFilter.field;
+		var value = inputFilter.value;
 		switch (inputFilter.operator()) {
 		case EQUALS -> {
 				return (entity, _, criteriaBuilder) -> criteriaBuilder.equal(entity.get(field), value);
@@ -173,14 +180,16 @@ public class EntitySpecification<T extends JpaEntity> implements Specification<T
 
 
 
-	private Specification<T> handleDateFieldType(Filter inputFilter, String field, String value)
+	private Specification<T> handleDateFieldType(Filter inputFilter)
 			throws ApplicationException {
-		Date date;
+		var field = inputFilter.field;
+		var value = inputFilter.value;
+		Date dateValue;
 		try {
 			// avoid using SimpleDateFormat use DateTimeFormatter instead
 			LocalDate ld = LocalDate.parse(value, DateTimeFormatter.ofPattern(DATE_FORMAT));
-			date = Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		} catch (DateTimeParseException e) {
+			dateValue = Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		} catch (DateTimeParseException _) {
 			var exceptionMessage = MessageFormatter.format(INVALID_DATE_FORMAT, inputFilter.value()).getMessage();
 			LOGGER.error(exceptionMessage);
 			throw new ApplicationException(exceptionMessage);
@@ -188,16 +197,16 @@ public class EntitySpecification<T extends JpaEntity> implements Specification<T
 
 		switch (inputFilter.operator()) {
 		case DATE_IS -> {
-			return (entity, _, criteriaBuilder) -> criteriaBuilder.equal(entity.get(field), date);
+			return (entity, _, criteriaBuilder) -> criteriaBuilder.equal(entity.get(field), dateValue);
 		}
 		case DATE_IS_NOT -> {
-			return (entity, _, criteriaBuilder) -> criteriaBuilder.notEqual(entity.get(field), date);
+			return (entity, _, criteriaBuilder) -> criteriaBuilder.notEqual(entity.get(field), dateValue);
 		}
 		case DATE_BEFORE -> {
-			return (entity, _, criteriaBuilder) -> criteriaBuilder.lessThan(entity.get(field), date);
+			return (entity, _, criteriaBuilder) -> criteriaBuilder.lessThan(entity.get(field), dateValue);
 		}
 		case DATE_AFTER -> {
-			return (entity, _, criteriaBuilder) -> criteriaBuilder.greaterThan(entity.get(field), date);
+			return (entity, _, criteriaBuilder) -> criteriaBuilder.greaterThan(entity.get(field), dateValue);
 		}
 		default -> {
 			var exceptionMessage = MessageFormatter
@@ -209,11 +218,13 @@ public class EntitySpecification<T extends JpaEntity> implements Specification<T
 	}
 
 
-	private Specification<T> handleLocalDateTimeFieldType(Filter inputFilter, String field, String value) throws ApplicationException {
+	private Specification<T> handleLocalDateTimeFieldType(Filter inputFilter) throws ApplicationException {
+		var field = inputFilter.field;
+		var value = inputFilter.value;
 		LocalDateTime localDateTimeValue;
 		try {
 			localDateTimeValue = LocalDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME);
-		} catch (DateTimeParseException e) {
+		} catch (DateTimeParseException _) {
 			var exceptionMessage = MessageFormatter.format(INVALID_DATE_FORMAT, inputFilter.value()).getMessage();
 			LOGGER.error(exceptionMessage);
 			throw new ApplicationException(exceptionMessage);			
